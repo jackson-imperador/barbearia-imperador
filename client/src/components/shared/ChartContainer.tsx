@@ -1,0 +1,1 @@
+export function ChartContainer() { return <div className="h-64 border border-border rounded-xl bg-card flex items-center justify-center">Chart Area</div>; }

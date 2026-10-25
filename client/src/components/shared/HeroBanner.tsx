@@ -1,0 +1,1 @@
+export function HeroBanner() { return <div className="relative w-full h-[400px] bg-card overflow-hidden flex items-center justify-center"><h1 className="text-4xl font-bold text-primary-foreground">Hero Banner</h1></div>; }

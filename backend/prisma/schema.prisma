@@ -1,0 +1,1166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                  String               @id @default(uuid())
+  name                String
+  domain              String?              @unique
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  appointmentPackages AppointmentPackage[]
+  appointments        Appointment[]
+  availabilityRules   AvailabilityRule[]
+  banners             Banner[]
+  barbers             Barber[]
+  blockedPeriods      BlockedPeriod[]
+  certificates        Certificate[]
+
+  courseModules CourseModule[]
+
+  customerGalleries     CustomerGallery[]
+  enrollments           Enrollment[]
+  financialTransactions FinancialTransaction[]
+  galleries             Gallery[]
+  lessonProgresses      LessonProgress[]
+  lessons               Lesson[]
+  loyaltyPoints         LoyaltyPoints[]
+  loyaltyProgram        LoyaltyProgram?
+
+  mediaFolders      MediaFolder[]
+  orders            Order[]
+  productCategories ProductCategory[]
+
+  roles             Role[]
+  serviceCategories ServiceCategory[]
+  services          Service[]
+  siteSettings      SiteSettings?
+  testimonials      Testimonial[]
+  users             User[]
+  medias            Media[]
+  products          Product[]
+  courses           Course[]
+  coupons           Coupon[]
+
+  @@index([domain])
+  @@map("tenants")
+}
+
+model User {
+  id                   String                @id @default(uuid())
+  email                String                @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  isActive             Boolean               @default(true)
+  tenantId             String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  avatarUrl            String?
+  birthDate            DateTime?
+  cashbackBalance      Decimal               @default(0) @db.Decimal(10, 2)
+  favoriteBarberId     String?
+  favoriteStyle        String?
+  loyaltyLevel         String                @default("Bronze")
+  points               Int                   @default(0)
+  walletBalance        Decimal               @default(0) @db.Decimal(10, 2)
+  phone                String?
+  isManualBan          Boolean               @default(false)
+  appointmentFavorites AppointmentFavorite[]
+  appointments         Appointment[]
+  barberFollows        BarberFollower[]
+  barberReviews        BarberReview[]
+  barberProfile        Barber?
+  certificates         Certificate[]
+  courseReviews        CourseReview[]
+  favorites            CustomerFavorite[]
+  customerGalleries    CustomerGallery[]
+  enrollments          Enrollment[]
+  loyaltyPoints        LoyaltyPoints[]
+  uploadedMedia        Media[]
+  orders               Order[]
+  productReviews       ProductReview[]
+  refreshTokens        RefreshToken[]
+  achievements         UserAchievement[]
+  userRoles            UserRole[]
+  subscription         UserSubscription?
+  notifications        Notification[]
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, email])
+  @@map("users")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  tenantId  String
+  title     String
+  body      String
+  type      String   @default("APPOINTMENT")
+  isRead    Boolean  @default(false)
+  data      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  tenantId    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  tenant      Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles   UserRole[]
+
+  @@unique([name, tenantId])
+  @@index([tenantId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  action      String
+  resource    String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+
+  @@unique([action, resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, token])
+  @@map("refresh_tokens")
+}
+
+model Barber {
+  id                   String                @id @default(uuid())
+  userId               String                @unique
+  tenantId             String
+  bio                  String?
+  title                String?
+  photoId              String?
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  appointmentFavorites AppointmentFavorite[]
+  appointments         Appointment[]
+  availabilityRules    AvailabilityRule[]
+  followers            BarberFollower[]
+  portfolio            BarberPortfolio[]
+  reviews              BarberReview[]
+  specialties          BarberSpecialty[]
+  photo                Media?                @relation("BarberPhoto", fields: [photoId], references: [id])
+  orders               Order[]
+  courses              Course[]              @relation("BarberCourses")
+  products             Product[]             @relation("BarberProducts")
+  services             Service[]             @relation("BarberServices")
+  coupons              Coupon[]              @relation("BarberCoupons")
+  medias               Media[]               @relation("BarberMedias")
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blockedPeriods       BlockedPeriod[]
+  daysOff              DayOff[]
+  vacations            Vacation[]
+  workingHours         WorkingHour[]
+
+  @@index([tenantId])
+  @@map("barbers")
+}
+
+model WorkingHour {
+  id           String   @id @default(uuid())
+  barberId     String
+  dayOfWeek    Int
+  startTime    String
+  endTime      String
+  isWorkingDay Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  barber       Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@unique([barberId, dayOfWeek])
+  @@map("working_hours")
+}
+
+model DayOff {
+  id        String   @id @default(uuid())
+  barberId  String
+  date      DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@unique([barberId, date])
+  @@map("days_off")
+}
+
+model Vacation {
+  id        String   @id @default(uuid())
+  barberId  String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@index([barberId])
+  @@map("vacations")
+}
+
+model ServiceCategory {
+  id           String    @id @default(uuid())
+  tenantId     String
+  name         String
+  description  String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  services     Service[]
+
+  @@index([tenantId])
+  @@map("service_categories")
+}
+
+model Service {
+  id                   String                @id @default(uuid())
+  tenantId             String
+  categoryId           String
+  name                 String
+  description          String?
+  duration             Int
+  price                Decimal               @db.Decimal(10, 2)
+  color                String?
+  imageId              String?
+  isActive             Boolean               @default(true)
+  displayOrder         Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  appointmentFavorites AppointmentFavorite[]
+  appointments         Appointment[]
+  category             ServiceCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  image                Media?                @relation(fields: [imageId], references: [id])
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barberId             String? // added for barber isolation
+  barber               Barber?               @relation("BarberServices", fields: [barberId], references: [id])
+  disabledByBarberIds  String[]              @default([])
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@map("services")
+}
+
+model AvailabilityRule {
+  id           String    @id @default(uuid())
+  tenantId     String
+  barberId     String
+  weekDay      Int
+  startTime    String
+  endTime      String
+  slotInterval Int
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  barber       Barber    @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([barberId])
+  @@map("availability_rules")
+}
+
+model BlockedPeriod {
+  id            String    @id @default(uuid())
+  tenantId      String
+  barberId      String
+  startDateTime DateTime
+  endDateTime   DateTime
+  reason        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  barber        Barber    @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([barberId])
+  @@map("blocked_periods")
+}
+
+model Appointment {
+  id                   String                @id @default(uuid())
+  tenantId             String
+  customerId           String
+  barberId             String
+  serviceId            String
+  startDateTime        DateTime
+  endDateTime          DateTime
+  status               AppointmentStatus     @default(PENDING)
+  notes                String?
+  cancellationReason   String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deletedAt            DateTime?
+  amountPaid           Decimal?              @db.Decimal(10, 2)
+  checkedInAt          DateTime?
+  confirmedAt          DateTime?
+  discount             Decimal?              @db.Decimal(10, 2)
+  estimatedDuration    Int?
+  paymentMethod        PaymentMethod?
+  quickNotes           String?
+  reminderSentAt       DateTime?
+  startedAt            DateTime?
+  isViewed             Boolean               @default(false)
+  reminders            AppointmentReminder[]
+  barber               Barber                @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  customer             User                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service              Service               @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  financialTransaction FinancialTransaction?
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([barberId])
+  @@index([startDateTime])
+  @@map("appointments")
+}
+
+model MediaFolder {
+  id        String    @id @default(uuid())
+  tenantId  String
+  name      String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children MediaFolder[] @relation("FolderHierarchy")
+  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  medias   Media[]
+
+  @@index([tenantId])
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+model Media {
+  id               String            @id @default(uuid())
+  tenantId         String
+  folderId         String?
+  name             String
+  originalName     String
+  mimeType         String
+  extension        String
+  size             Int
+  width            Int?
+  height           Int?
+  duration         Int?
+  url              String
+  thumbnailUrl     String?
+  visibility       MediaVisibility   @default(PUBLIC)
+  type             MediaType         @default(IMAGE)
+  hash             String?
+  altText          String?
+  caption          String?
+  description      String?
+  tags             String[]
+  uploadedById     String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  bannerImages     Banner[]          @relation("BannerImage")
+  bannerVideos     Banner[]          @relation("BannerVideo")
+  barberPortfolios BarberPortfolio[]
+  barbers          Barber[]          @relation("BarberPhoto")
+  certificates     Certificate[]
+
+  customerGalleries CustomerGallery[]
+  galleries         Gallery[]
+  lessonPdfs        LessonPdf[]
+  lessonVideos      Lesson[]          @relation("LessonVideo")
+  folder            MediaFolder?      @relation(fields: [folderId], references: [id])
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barberId          String? // added for barber isolation
+  barber            Barber?           @relation("BarberMedias", fields: [barberId], references: [id])
+  uploadedBy        User?             @relation(fields: [uploadedById], references: [id])
+  productMedia      ProductMedia[]
+
+  services                  Service[]
+  siteSettingsAcademyBanner SiteSettings[] @relation("SiteAcademyBanner")
+  siteSettingsAppIcon       SiteSettings[] @relation("SiteAppIcon")
+  siteSettingsDefaultImage  SiteSettings[] @relation("SiteDefaultImage")
+  siteSettingsFavicon       SiteSettings[] @relation("SiteFavicon")
+  siteSettingsHeroBanner    SiteSettings[] @relation("SiteHeroBanner")
+  siteSettingsHomeVideo     SiteSettings[] @relation("SiteHomeVideo")
+  siteSettingsLogo          SiteSettings[] @relation("SiteLogo")
+  siteSettingsAbout1        SiteSettings[] @relation("SiteAboutImage1")
+  siteSettingsAbout2        SiteSettings[] @relation("SiteAboutImage2")
+  siteSettingsAbout3        SiteSettings[] @relation("SiteAboutImage3")
+  siteSettingsAbout4        SiteSettings[] @relation("SiteAboutImage4")
+  testimonials              Testimonial[]
+  products                  Product[]
+  courses                   Course[]
+
+  @@index([tenantId])
+  @@index([folderId])
+  @@index([type])
+  @@map("media")
+}
+
+model ProductCategory {
+  id          String    @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products    Product[]
+
+  @@index([tenantId])
+  @@map("product_categories")
+}
+
+model Product {
+  id                    String                @id @default(uuid())
+  tenantId              String
+  categoryId            String
+  name                  String
+  description           String?
+  price                 Decimal               @db.Decimal(10, 2)
+  promoPrice            Decimal?              @db.Decimal(10, 2)
+  isActive              Boolean               @default(true)
+  isFeatured            Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  deletedAt             DateTime?
+  stock                 Int                   @default(0)
+  amazonLink            String?
+  commercializationType CommercializationType @default(PROPRIO)
+  mercadoLivreLink      String?
+  shopeeLink            String?
+  imageId               String?
+
+  favoritedBy CustomerFavorite[]
+  orderItems  OrderItem[]
+  media       ProductMedia[]
+  reviews     ProductReview[]
+  category    ProductCategory    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  image       Media?             @relation(fields: [imageId], references: [id])
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barberId    String? // added for barber isolation
+  barber      Barber?            @relation("BarberProducts", fields: [barberId], references: [id])
+  coupons     Coupon[]
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductMedia {
+  id           String   @id @default(uuid())
+  productId    String
+  mediaId      String
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  media        Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([mediaId])
+  @@map("product_media")
+}
+
+model Course {
+  id           String         @id @default(uuid())
+  tenantId     String
+  title        String
+  description  String?
+  price        Decimal        @db.Decimal(10, 2)
+  promoPrice   Decimal?       @db.Decimal(10, 2)
+  isPublished  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  imageId      String?
+  certificates Certificate[]
+  modules      CourseModule[]
+  reviews      CourseReview[]
+  image        Media?         @relation(fields: [imageId], references: [id])
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barberId     String? // added for barber isolation
+  barber       Barber?        @relation("BarberCourses", fields: [barberId], references: [id])
+  enrollments  Enrollment[]
+  orderItems   OrderItem[]
+
+  @@index([tenantId])
+  @@index([imageId])
+  @@map("courses")
+}
+
+model CourseReview {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("course_reviews")
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_reviews")
+}
+
+model CustomerFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String?
+  createdAt DateTime @default(now())
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("customer_favorites")
+}
+
+model CourseModule {
+  id           String    @id @default(uuid())
+  tenantId     String
+  courseId     String
+  title        String
+  description  String?
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+
+  @@index([courseId])
+  @@map("course_modules")
+}
+
+model Lesson {
+  id           String           @id @default(uuid())
+  tenantId     String
+  moduleId     String
+  title        String
+  description  String?
+  videoId      String?
+  displayOrder Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
+  pdfs         LessonPdf[]
+  progress     LessonProgress[]
+  module       CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  video        Media?           @relation("LessonVideo", fields: [videoId], references: [id])
+
+  @@index([moduleId])
+  @@map("lessons")
+}
+
+model LessonPdf {
+  id           String   @id @default(uuid())
+  lessonId     String
+  mediaId      String
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  media        Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@index([mediaId])
+  @@map("lesson_pdfs")
+}
+
+model Enrollment {
+  id             String           @id @default(uuid())
+  tenantId       String
+  courseId       String
+  studentId      String
+  progress       Float            @default(0)
+  isCompleted    Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student        User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lessonProgress LessonProgress[]
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@index([studentId])
+  @@map("enrollments")
+}
+
+model LessonProgress {
+  id           String     @id @default(uuid())
+  tenantId     String
+  enrollmentId String
+  lessonId     String
+  isCompleted  Boolean    @default(false)
+  lastPosition Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+  @@map("lesson_progress")
+}
+
+model Certificate {
+  id        String    @id @default(uuid())
+  tenantId  String
+  courseId  String
+  studentId String
+  code      String    @unique
+  qrCodeId  String?
+  issuedAt  DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  qrCode    Media?    @relation(fields: [qrCodeId], references: [id])
+  student   User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([courseId])
+  @@index([studentId])
+  @@map("certificates")
+}
+
+model SiteSettings {
+  id                     String   @id @default(uuid())
+  tenantId               String   @unique
+  logoId                 String?
+  primaryColor           String?
+  secondaryColor         String?
+  aboutUs                String?
+  contactEmail           String?
+  contactPhone           String?
+  facebookUrl            String?
+  instagramUrl           String?
+  twitterUrl             String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  address                String?
+  appIconId              String?
+  heroBannerId           String?
+  homeSubtitle           String?
+  homeTitle              String?
+  homeVideoId            String?
+  siteName               String?
+  whatsapp               String?
+  workingHours           String?
+  vipOuroPrice           Float?
+  vipPrataPrice          Float?
+  academyDescription     String?
+  academyName            String?
+  cancellationLimitHours Int?
+  policyCancellation     String?
+  policyPrivacy          String?
+  storeMessage           String?
+  storeName              String?
+  storePolicy            String?
+  termsOfUse             String?
+  academyBannerId        String?
+  closedDays             String?
+  confirmationMessage    String?
+  currency               String?  @default("BRL")
+  defaultImageId         String?
+  faviconId              String?
+  noShowPolicy           String?
+  timezone               String?  @default("America/Sao_Paulo")
+  aboutImage1Id          String?
+  aboutImage2Id          String?
+  aboutImage3Id          String?
+  aboutImage4Id          String?
+  academyBanner          Media?   @relation("SiteAcademyBanner", fields: [academyBannerId], references: [id])
+  appIcon                Media?   @relation("SiteAppIcon", fields: [appIconId], references: [id])
+  defaultImage           Media?   @relation("SiteDefaultImage", fields: [defaultImageId], references: [id])
+  favicon                Media?   @relation("SiteFavicon", fields: [faviconId], references: [id])
+  heroBanner             Media?   @relation("SiteHeroBanner", fields: [heroBannerId], references: [id])
+  homeVideo              Media?   @relation("SiteHomeVideo", fields: [homeVideoId], references: [id])
+  logo                   Media?   @relation("SiteLogo", fields: [logoId], references: [id])
+  aboutImage1            Media?   @relation("SiteAboutImage1", fields: [aboutImage1Id], references: [id])
+  aboutImage2            Media?   @relation("SiteAboutImage2", fields: [aboutImage2Id], references: [id])
+  aboutImage3            Media?   @relation("SiteAboutImage3", fields: [aboutImage3Id], references: [id])
+  aboutImage4            Media?   @relation("SiteAboutImage4", fields: [aboutImage4Id], references: [id])
+  tenant                 Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("site_settings")
+}
+
+model Banner {
+  id           String    @id @default(uuid())
+  tenantId     String
+  title        String?
+  subtitle     String?
+  imageId      String
+  videoId      String?
+  linkUrl      String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  image        Media     @relation("BannerImage", fields: [imageId], references: [id])
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  video        Media?    @relation("BannerVideo", fields: [videoId], references: [id])
+
+  @@index([tenantId])
+  @@map("banners")
+}
+
+model Gallery {
+  id           String    @id @default(uuid())
+  tenantId     String
+  imageId      String
+  caption      String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  image        Media     @relation(fields: [imageId], references: [id])
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("galleries")
+}
+
+model Testimonial {
+  id            String    @id @default(uuid())
+  tenantId      String
+  authorName    String
+  authorPhotoId String?
+  content       String
+  rating        Int       @default(5)
+  displayOrder  Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  authorPhoto   Media?    @relation(fields: [authorPhotoId], references: [id])
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("testimonials")
+}
+
+model FinancialTransaction {
+  id             String          @id @default(uuid())
+  tenantId       String
+  amount         Decimal         @db.Decimal(10, 2)
+  type           TransactionType @default(INCOME)
+  paymentMethod  PaymentMethod
+  description    String?
+  appointmentId  String?         @unique
+  externalBankId String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  appointment    Appointment?    @relation(fields: [appointmentId], references: [id])
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("financial_transactions")
+}
+
+model LoyaltyProgram {
+  id                String   @id @default(uuid())
+  tenantId          String   @unique
+  pointsPerCurrency Decimal  @default(1) @db.Decimal(10, 2)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_programs")
+}
+
+model LoyaltyPoints {
+  id         String   @id @default(uuid())
+  tenantId   String
+  customerId String
+  points     Int
+  reason     String?
+  createdAt  DateTime @default(now())
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("loyalty_points")
+}
+
+model Order {
+  id             String         @id @default(uuid())
+  tenantId       String
+  customerId     String
+  status         OrderStatus    @default(PENDING)
+  totalAmount    Decimal        @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  salesChannel   SalesChannel   @default(SITE)
+  pixCode        String?
+  pixCodeBase64  String?
+  couponCode     String?
+  discountAmount Decimal?       @db.Decimal(10, 2)
+  items          OrderItem[]
+  customer       User           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barber         Barber?        @relation(fields: [barberId], references: [id])
+  barberId       String?
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  productId  String?
+  quantity   Int      @default(1)
+  unitPrice  Decimal  @db.Decimal(10, 2)
+  totalPrice Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  courseId   String?
+  course     Course?  @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product? @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([courseId])
+  @@map("order_items")
+}
+
+model UserSubscription {
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  plan      String
+  isActive  Boolean   @default(true)
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_subscriptions")
+}
+
+model UserAchievement {
+  id       String   @id @default(uuid())
+  userId   String
+  title    String
+  badgeUrl String?
+  earnedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+model BarberPortfolio {
+  id           String   @id @default(uuid())
+  barberId     String
+  mediaId      String
+  description  String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  barber       Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  media        Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@index([barberId])
+  @@map("barber_portfolio")
+}
+
+model BarberReview {
+  id        String   @id @default(uuid())
+  barberId  String
+  userId    String
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([barberId])
+  @@map("barber_reviews")
+}
+
+model BarberFollower {
+  id        String   @id @default(uuid())
+  barberId  String
+  userId    String
+  createdAt DateTime @default(now())
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([barberId, userId])
+  @@map("barber_followers")
+}
+
+model BarberSpecialty {
+  id        String @id @default(uuid())
+  barberId  String
+  specialty String
+  barber    Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@index([barberId])
+  @@map("barber_specialties")
+}
+
+model AppointmentReminder {
+  id            String      @id @default(uuid())
+  appointmentId String
+  type          String
+  sentAt        DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@map("appointment_reminders")
+}
+
+model AppointmentFavorite {
+  id        String  @id @default(uuid())
+  userId    String
+  serviceId String
+  barberId  String?
+  name      String
+  barber    Barber? @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("appointment_favorites")
+}
+
+model AppointmentPackage {
+  id            String   @id @default(uuid())
+  tenantId      String
+  name          String
+  price         Decimal  @db.Decimal(10, 2)
+  servicesCount Int
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("appointment_packages")
+}
+
+model CustomerGallery {
+  id         String   @id @default(uuid())
+  tenantId   String
+  customerId String
+  imageId    String
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  image      Media    @relation(fields: [imageId], references: [id])
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([imageId])
+  @@map("customer_galleries")
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  tenantId      String
+  code          String
+  description   String?
+  type          CouponType
+  marketplace   String?
+  productId     String?
+  discountValue Decimal      @db.Decimal(10, 2)
+  discountType  DiscountType
+  link          String?
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean      @default(true)
+  usageCount    Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  product       Product?     @relation(fields: [productId], references: [id])
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barberId      String? // added for barber isolation
+  barber        Barber?      @relation("BarberCoupons", fields: [barberId], references: [id])
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("coupons")
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  PDF
+  AUDIO
+  DOCUMENT
+}
+
+enum MediaVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT
+  DEBIT
+  CASH
+  CREDIT_CARD
+}
+
+enum CommercializationType {
+  PROPRIO
+  PARCEIRO
+}
+
+enum SalesChannel {
+  SITE
+  BALCAO
+  SHOPEE
+  MERCADO_LIVRE
+  AMAZON
+  OUTRO_PARCEIRO
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  REFUND
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum CouponType {
+  INTERNAL
+  EXTERNAL
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model BotSession {
+  id               String   @id @default(uuid())
+  phone            String
+  tenantId         String
+  step             String   @default("START")
+  serviceId        String?
+  barberId         String?
+  selectedDate     String?
+  selectedTime     String?
+  appointmentId    String?
+  paymentReference String?
+  customerName     String?
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([phone, tenantId])
+  @@index([tenantId])
+  @@map("bot_sessions")
+}

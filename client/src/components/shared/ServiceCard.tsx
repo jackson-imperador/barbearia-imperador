@@ -1,0 +1,1 @@
+export function ServiceCard() { return <div className="p-4 border border-border rounded-xl bg-card">Service Card</div>; }

@@ -1,0 +1,1 @@
+export function BottomNavigation() { return <nav className="fixed bottom-0 w-full border-t border-border bg-background sm:hidden">Bottom Nav</nav>; }

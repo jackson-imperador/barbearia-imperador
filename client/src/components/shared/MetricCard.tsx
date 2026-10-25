@@ -1,0 +1,1 @@
+export function MetricCard() { return <div>Metric Card Placeholder</div>; }

@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  /* Premium Dark/Marble Theme */
+  --background: #050505; /* Deep Matte Black */
+  --foreground: #FAFAFA; /* Crisp White */
+  
+  --primary: #050505;
+  --primary-foreground: #D4AF37; /* Metallic Gold */
+  
+  --secondary: #D4AF37;
+  --secondary-foreground: #050505;
+  
+  --accent: #FAFAFA;
+  --accent-foreground: #050505;
+  
+  --success: #22C55E;
+  --success-foreground: #FFFFFF;
+  
+  --danger: #EF4444;
+  --danger-foreground: #FFFFFF;
+  
+  --card: #0A0A0A; /* Slightly lighter black for cards */
+  --card-foreground: #FAFAFA;
+  
+  --border: #1F1F1F; /* Dark gray for subtle borders */
+  --input: #111111;
+  --ring: #D4AF37;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.3s ease-in-out;
+  --animate-fade-out: fade-out 0.3s ease-in-out;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Typography utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Mobile safe area for bottom nav (handles iOS home indicator) */
+  .safe-area-bottom {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  /* Hide scrollbar but keep scrollability */
+  .hidden-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hidden-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar for modals/drawers */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+
+  /* Remove iOS tap highlight on interactive elements */
+  .tap-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Drawer slide-in animation */
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+.animate-in.slide-in-from-left {
+  animation: slide-in-from-left 0.25s ease-out forwards;
+}
+
+/* Remove iOS input zoom (font-size >= 16px) */
+input, select, textarea {
+  font-size: max(16px, 1rem);
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

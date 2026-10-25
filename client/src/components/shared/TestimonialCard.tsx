@@ -1,0 +1,1 @@
+export function TestimonialCard() { return <div className="p-4 border border-border rounded-xl bg-card italic">"Great service!"</div>; }

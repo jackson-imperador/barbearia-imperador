@@ -1,0 +1,1 @@
+export function SearchInput() { return <div>Search Input Placeholder</div>; }

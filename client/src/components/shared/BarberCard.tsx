@@ -1,0 +1,1 @@
+export function BarberCard() { return <div className="p-4 border border-border rounded-xl bg-card">Barber Card</div>; }

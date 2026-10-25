@@ -1,0 +1,1 @@
+'use client'; export function InstallPrompt() { return <div>Install Prompt Placeholder</div>; }

@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+client/.env
+client/.env.*
+!client/.env.example
+
+# Build outputs
+dist/
+backend/dist/
+.next/
+client/.next/
+out/
+client/out/
+build/
+
+# Uploads & Runtime state
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/whatsapp-auth/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo

@@ -1,0 +1,1 @@
+'use client'; export function OfflineSupport() { return <div>Offline Support Placeholder</div>; }
