@@ -8,6 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 export function resolveMediaUrl(url?: string | null): string {
   if (!url) return "";
   if (url.startsWith("http") || url.startsWith("data:")) return url;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://barbearia-imperador.onrender.com";
   return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
 }

@@ -34,7 +34,7 @@ interface GalleryItem { id: string; caption?: string; image?: { url: string }; i
 interface Testimonial { id: string; authorName: string; content: string; rating?: number; authorPhoto?: any; }
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3005";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://barbearia-imperador.onrender.com";
 
 function resolveUrl(url?: string): string | undefined {
   if (!url) return undefined;

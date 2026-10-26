@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // Create central Axios instance
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://barbearia-imperador.onrender.com',
   timeout: 0, // Sem timeout — uploads de vídeo grandes podem demorar vários minutos
   withCredentials: true, // Crucial for sending/receiving secure httpOnly cookies
 });
