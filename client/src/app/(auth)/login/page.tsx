@@ -89,6 +89,12 @@ export default function LoginPage() {
           <p className="text-xs text-muted-foreground uppercase tracking-widest mt-2">Entre na sua conta</p>
         </div>
 
+        {searchParams.get('redirect')?.includes('agendamento') && (
+          <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 p-3 mb-6 text-xs uppercase tracking-widest text-center">
+            Faça login ou cadastre-se para agendar seu horário
+          </div>
+        )}
+
         {error && (
           <div className="bg-danger/10 text-danger p-3 mb-6 text-sm uppercase tracking-widest text-center border border-danger/30">
             {error}
@@ -125,7 +131,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Ainda não tem conta? <a href="/register" className="text-primary-foreground hover:underline">Cadastre-se</a>
+          Ainda não tem conta? <a href={`/register${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`} className="text-primary-foreground hover:underline">Cadastre-se</a>
         </p>
       </motion.div>
     </main>

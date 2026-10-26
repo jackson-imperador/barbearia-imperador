@@ -34,7 +34,7 @@ export default function RegisterPage() {
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
         api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        document.cookie = `accessToken=${accessToken}; path=/; max-age=${15 * 60}; SameSite=Lax`;
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`;
       }
       
       const redirectUrl = searchParams.get('redirect') || '/customer';

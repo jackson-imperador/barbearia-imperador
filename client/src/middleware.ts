@@ -46,9 +46,9 @@ export default function proxy(request: NextRequest) {
   };
 
   // 1. Protected areas: Redirect unauthenticated or expired users to /login
-  if (pathname.startsWith('/owner') || pathname.startsWith('/barber') || pathname.startsWith('/employee') || pathname.startsWith('/customer')) {
+  if (pathname.startsWith('/owner') || pathname.startsWith('/barber') || pathname.startsWith('/employee') || pathname.startsWith('/customer') || pathname.startsWith('/agendamento')) {
     if (!isAuthenticated) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
+      const response = NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url));
       return clearCookieIfInvalid(response);
     }
   }
@@ -100,5 +100,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/owner/:path*', '/barber/:path*', '/employee/:path*', '/customer/:path*', '/admin/:path*', '/dashboard/:path*', '/login', '/register'],
+  matcher: ['/owner/:path*', '/barber/:path*', '/employee/:path*', '/customer/:path*', '/admin/:path*', '/dashboard/:path*', '/login', '/register', '/agendamento/:path*', '/agendamento'],
 };

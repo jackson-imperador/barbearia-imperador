@@ -79,6 +79,36 @@ const staggerItem = {
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState('CUSTOMER');
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      setIsLoggedIn(true);
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (payload.roles && Array.isArray(payload.roles)) {
+            if (payload.roles.includes('SUPER_ADMIN') || payload.roles.includes('ADMIN') || payload.roles.includes('OWNER')) {
+              setUserRole('ADMIN');
+            } else if (payload.roles.includes('BARBER')) {
+              setUserRole('BARBER');
+            }
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
+    setIsLoggedIn(false);
+    window.location.reload();
+  };
 
   // Dados da API
   const [settings, setSettings] = useState<SiteSettings>({});
@@ -185,9 +215,20 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link href="/login" className="hidden md:block text-xs uppercase tracking-widest font-bold hover:text-white text-zinc-400 transition-colors">
-              Entrar
-            </Link>
+            {isLoggedIn ? (
+              <div className="hidden md:flex items-center gap-3">
+                <Link href={userRole === 'ADMIN' ? '/owner' : (userRole === 'BARBER' ? '/barber/dashboard' : '/customer')} className="text-xs uppercase tracking-widest font-bold text-amber-500 hover:text-amber-400 transition-colors">
+                  {userRole === 'ADMIN' ? 'Painel Admin' : (userRole === 'BARBER' ? 'Painel Barbeiro' : 'Minha Área')}
+                </Link>
+                <button onClick={handleLogout} className="text-xs uppercase tracking-widest font-bold text-zinc-400 hover:text-red-400 transition-colors">
+                  Sair
+                </button>
+              </div>
+            ) : (
+              <Link href="/login" className="hidden md:block text-xs uppercase tracking-widest font-bold hover:text-white text-zinc-400 transition-colors">
+                Entrar
+              </Link>
+            )}
             <Link href="/agendamento" className="bg-amber-600 hover:bg-amber-500 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)]">
               Agendar
             </Link>
@@ -212,7 +253,18 @@ export default function HomePage() {
                     {l.label}
                   </a>
                 ))}
-                <Link href="/login" className="text-zinc-400 uppercase tracking-widest text-sm pt-2">Entrar</Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link href={userRole === 'ADMIN' ? '/owner' : (userRole === 'BARBER' ? '/barber/dashboard' : '/customer')} className="text-amber-500 uppercase tracking-widest text-sm pt-2">
+                      {userRole === 'ADMIN' ? 'Painel Admin' : (userRole === 'BARBER' ? 'Painel Barbeiro' : 'Minha Área')}
+                    </Link>
+                    <button onClick={handleLogout} className="text-red-400 text-left uppercase tracking-widest text-sm py-1">
+                      Sair da Conta
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/login" className="text-zinc-400 uppercase tracking-widest text-sm pt-2">Entrar</Link>
+                )}
               </nav>
             </motion.div>
           )}
