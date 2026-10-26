@@ -55,15 +55,24 @@ export default function LoginPage() {
       }
       
       let targetUrl = '/customer';
-      if (roles.includes('SUPER_ADMIN') || roles.includes('OWNER') || roles.includes('ADMIN')) {
+      const isAdmin = roles.includes('SUPER_ADMIN') || roles.includes('OWNER') || roles.includes('ADMIN');
+      const isBarber = roles.includes('BARBER');
+
+      if (isAdmin) {
         targetUrl = '/owner';
-      } else if (roles.includes('BARBER')) {
+      } else if (isBarber) {
         targetUrl = '/barber/dashboard';
       }
       
       // Redirect to the originally intended page if it exists, otherwise go to default dashboard
       const redirectUrl = searchParams.get('redirect');
-      window.location.href = redirectUrl || targetUrl;
+      if (isAdmin) {
+        window.location.href = (redirectUrl && !redirectUrl.startsWith('/customer')) ? redirectUrl : '/owner';
+      } else if (isBarber) {
+        window.location.href = (redirectUrl && !redirectUrl.startsWith('/customer')) ? redirectUrl : '/barber/dashboard';
+      } else {
+        window.location.href = redirectUrl || targetUrl;
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {
